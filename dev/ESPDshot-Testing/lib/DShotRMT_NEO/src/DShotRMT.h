@@ -9,8 +9,17 @@
 
 //#include <driver/rmt.h>
 
+/// by default, some of these functions are loaded into IRAM so we can send data out from an ISR
+/// if for some reason, you don't want this to happen, define `DSHOT_CONFIG_DONT_USE_IRAM_TX`
+#ifdef DSHOT_CONFIG_DONT_USE_IRAM_TX
+#define FAST_ATTR_FLAG
+#else
+#define FAST_ATTR_FLAG IRAM_ATTR
+#endif
+
+
 // Defines the library version
-constexpr auto DSHOT_LIB_VERSION = "0.4.0";
+constexpr auto DSHOT_LIB_VERSION = "4.2.0";
 
 // Constants related to the DShot protocol
 constexpr auto DSHOT_CLK_DIVIDER = 8;    // Slow down RMT clock to 0.1 microseconds / 100 nanoseconds per cycle
@@ -247,14 +256,22 @@ class DShotRMT
     
     public:
     //constructors and destructors
-	DShotRMT(uint8_t pin);
+	DShotRMT();
+    DShotRMT(uint8_t pin);
 	~DShotRMT();
 
 
     //interface commands (with safe defaults)
-	void begin(dshot_mode_t dshot_mode = DSHOT_OFF, bidirectional_mode_t is_bidirectional = NO_BIDIRECTION, uint16_t magnet_count = 14);
-	dshot_send_packet_exit_mode_t send_dshot_value(uint16_t throttle_value, bool get_onewire_telemetry = true, telemetric_request_t telemetric_request = NO_TELEMETRIC);
+    void begin(dshot_mode_t dshot_mode = DSHOT_OFF, bidirectional_mode_t is_bidirectional = NO_BIDIRECTION, uint16_t magnet_count = 14);
+	void begin(uint8_t pin, dshot_mode_t dshot_mode = DSHOT_OFF, bidirectional_mode_t is_bidirectional = NO_BIDIRECTION, uint16_t magnet_count = 14);
+
+	dshot_send_packet_exit_mode_t send_dshot_value(uint16_t throttle_value, telemetric_request_t telemetric_request = NO_TELEMETRIC);
     
+    void prepare_dshot_value(uint16_t throttle_value, telemetric_request_t telemetric_request = NO_TELEMETRIC);
+    dshot_send_packet_exit_mode_t send_last_value();
+
+
+
     //uint16_t get_dshot_RPM();
     //function now returns its fail state to the caller
 
@@ -282,11 +299,14 @@ class DShotRMT
     rmt_symbol_word_t dshot_tx_rmt_item[DSHOT_PACKET_LENGTH] = {};
 
     //all the settings for setting up the ESC channels 
-    dshot_config_t dshot_config;
+    dshot_config_t dshot_config = {};
 
     //used to determine telemetry success rate when reading values sent from the ESC
     uint32_t successful_packets = 0;
     uint32_t error_packets = 0;
+
+    //used in the destructor to determine what to destruct when finished
+    bool started = false;
 
     //rmt_item32_t* encode_dshot_to_rmt(uint16_t parsed_packet); //rmt_symbol_word_t
     void encode_dshot_to_rmt(uint16_t parsed_packet);
