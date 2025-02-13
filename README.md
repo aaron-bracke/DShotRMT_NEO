@@ -3,6 +3,17 @@
 ### What is this fork?
 This fork updates the existing ESP-RMT library made by derdoktor667 to use the newer espidf RMT libraries. It adds **working Bidirectional Dshot Support** to the library.
 
+
+### Dependencies
+
+For this library to work, it makes use of newer RMT backend infrastructure introduced with espidf 5.0.0. The upstream espidf version shipped with platformIO's arduino env still uses the 4.x version of the espidf libraries, so to get around this limitation, I use my own personal port of the newer RMT backend found here:
+https://github.com/DrGlaucous/esp-rmt-NEO
+
+**Note** that if you're using a bleeding-edge platform fork [like this one](https://github.com/Jason2866/platform-espressif32), then that *does* have the newer RMT backend, and will cause compiler errors because the esp-rmt-NEO package will try to step on the existing definitions. To fix this, just remove the dependency of https://github.com/DrGlaucous/esp-rmt-NEO from the `library.json` file, and the rest of the library should work as intended.
+
+
+
+
 ### Usage
 
 
