@@ -227,7 +227,7 @@ void DShotRMT::begin(uint8_t pin, dshot_mode_t dshot_mode, bidirectional_mode_t 
         .gpio_num = dshot_config.gpio_num,
         .clk_src = RMT_CLK_SRC_DEFAULT, // select a clock that can provide needed resolution (apb)
         .resolution_hz = RMT_CYCLES_PER_SEC, // esc resolution in Hz
-        .mem_block_symbols = 64, // default count per channel
+        .mem_block_symbols = 48, // 48 such that more than 2 Tx channels can be used (https://esp32.com/viewtopic.php?t=42301)
         .trans_queue_depth = 10 // set the number of transactions that can be pending in the background
     };
 
